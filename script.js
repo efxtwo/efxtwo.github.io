@@ -45,15 +45,15 @@ function dealCards(){
 
     
     for(i=0; i<2; i++){
-        playersHand.push(card[cardCount]);
-        playersHold.innerHTML = `<img src=PNG-cards/${number}_of_${suits}.png>`;
+        playersHand.push(deck[cardCount]);
+        playersHold.innerHTML += `<img src=PNG-cards/${deck[cardCount].number}_of_${deck[cardCount].suites}.png>`;
         cardCounter();
-        dealersHand.push(card[cardCount]);
+        dealersHand.push(deck[cardCount]);
         if (i == 0){
-            dealersHold.innerHTML = `<img src=PNG-cards/pokemoncard.png>`;
+            dealersHold.innerHTML += `<img src=PNG-cards/pokemoncard.png>`;
         } else{
-            dealersHold.innerHTML = `<img src=PNG-cards/${number}_of_${suits}.png>`;
-            dealerValue.innerHTML = `${value}`
+            dealersHold.innerHTML += `<img src=PNG-cards/${deck[cardCount].number}_of_${deck[cardCount].suites}.png>`;
+            dealerValue.innerHTML = `${deck[cardCount].value}`
         }
     }
 }
@@ -65,3 +65,10 @@ function cardCounter(){
         cardCount = 0;
     }
 }
+
+function startGame(){
+    shuffleDeck(deck);
+    dealCards();
+}
+
+startButton.addEventListener('click',startGame())
