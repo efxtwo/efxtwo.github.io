@@ -40,6 +40,8 @@ function shuffleDeck(array) {    //shuffling the deck, order of cards get re-arr
 function dealCards(){
     let playersHand =[];
     let dealersHand = [];
+    let dealerCounter = 0;
+    gameStatus = 1;
     playersHold.innerHTML = '';
     dealersHold.innerHTML = '';
 
@@ -47,21 +49,28 @@ function dealCards(){
     for(i=0; i<2; i++){
         playersHand.push(deck[cardCount]);
         playersHold.innerHTML += `<img src=PNG-cards/${deck[cardCount].number}_of_${deck[cardCount].suites}.png>`;
+        // playerCounter = parseInt(playerCounter) + parseInt(`${deck[cardCount].value}`);
         cardCounter();
         dealersHand.push(deck[cardCount]);
         if (i == 0){
             dealersHold.innerHTML += `<img src=PNG-cards/pokemoncard.png>`;
         } else{
             dealersHold.innerHTML += `<img src=PNG-cards/${deck[cardCount].number}_of_${deck[cardCount].suites}.png>`;
-            dealerValue.innerHTML = `${deck[cardCount].value}`
+            dealerValue.innerHTML = `${deck[cardCount].value}`;
         }
+        cardCounter();
     }
+    let playerCounter = aceCheck(playersHand);
+    if (playerCounter == 21 && playersHand.length == 2){
+        gameOver();
+    }
+    playerValue.innerHTML = playerCounter;
 }
 
 function cardCounter(){
     cardCount++;
     if (cardCount > 29){
-        shuffleDeck(card);
+        shuffleDeck(deck);
         cardCount = 0;
     }
 }
@@ -69,6 +78,30 @@ function cardCounter(){
 function startGame(){
     shuffleDeck(deck);
     dealCards();
+};
+
+function aceCheck(whosCard){
+    let checkValue = 0;
+    let hasAce = false;
+
+    for(let i in whosCard){
+        if (whosCard[i].number == 'ace' && !hasAce){
+            hasAce = true;
+            checkValue = checkValue + 10;
+        }
+        checkValue = checkValue + whosCard[i].value;
+    }
+
+    if (hasAce && checkValue > 21){
+        checkValue = checkValue - 10;
+        }
+       return checkValue; 
 }
 
-startButton.addEventListener('click',startGame())
+function gameOver(){
+    dealersHold.innerHTML = `<img src=PNG-cards/${deck[1].number}_of_${deck[1].suites}.png><img src=PNG-cards/${deck[3].number}_of_${deck[3].suites}.png>`;
+    dealerCounter = parseInt(deck[1].value) + parseInt(deck[3].value);
+    dealerValue.innerHTML = dealerCounter;
+}
+
+startButton.addEventListener('click',startGame)
