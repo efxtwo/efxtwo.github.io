@@ -2,11 +2,15 @@ console.log('working')
 
 const stayButton = document.getElementById('stayButton');
 const hitButton = document.getElementById('hitButton');
+const overLay = document.getElementById('overlay');
+const gameResults = document.getElementById('gameResults');
 const startButton = document.getElementById('startButton');
 const playersHold = document.getElementById('playersCards');
 const dealersHold = document.getElementById('dealersCards');
 const playerValue = document.getElementById('playerValue');
 const dealerValue = document.getElementById('dealerValue');
+const dealersVisibleCards = document.getElementById('dealersVisibleCards');
+const dealersHitCards = document.getElementById('dealersHitCards');
 
 let cardSuites = ['clubs','hearts','diamonds','spades'];
 let cardNums = ['ace',2,3,4,5,6,7,8,9,10,'jack','queen','king'];
@@ -14,70 +18,104 @@ let deck = [];
 let initialGame = true;
 let cardCount = 0;
 let gameStatus = 0;
-let dealerUp = 0;
 let dealerHidden = 0;
-let playersHand =[];
+let dealerUp = 0;
+let playersHand = [];
 let dealersHand = [];
+let numberOfDecks = 2;
+let casinoCounter = 0;
 
-function createDeck(){
+function createdeck(){
     for(suit in cardSuites){
         for(nums in cardNums){
         let cardValue = nums > 9 ? 10 : parseInt(nums) + 1;
+        let casinoValue = nums > 9 ? 10 : parseInt(nums) + 1;
 
-         let card = {
-           suites: cardSuites[suit],
-           number: cardNums[nums],
-            value: cardValue
-       };  
-       deck.push(card);
+        let card = {
+            suites: cardSuites[suit],
+            number: cardNums[nums],
+            value: cardValue,
+            hiLo: casinoValue,
+        };  
+        deck.push(card);
         }
     }
 }
-
-function shuffleDeck(array) {    //shuffling the deck, order of cards get re-arranged
+function shuffleDeck(array) {
+    casinoCounter = 0;
     for (var i = array.length - 1; i > 0; i--){
-          var j = Math.floor(Math.random() * (i + 1));  // getting random values
-          var temp = array[i]; // a temporary holder to hold the value of i
-          array[i] = array[j];  // re-creating the value of i by a random value
+          var j = Math.floor(Math.random() * (i + 1));
+          var temp = array[i]; 
+          array[i] = array[j]; 
           array[j] = temp;
       }
       return array;
   }
 
-  function dealCards(){
-    let playersDealtHand =[];
+function dealCards(){
+    overLay.style.display = 'none';
+    hitButton.style.display = 'unset';
+    stayButton.style.display = 'unset';
+    let playersDealtHand = [];
     let dealersDealtHand = [];
     let dealerCounter = 0;
 	let dealersUpValue = 0;
     gameStatus = 1;
     playersHold.innerHTML = '';
-    dealersHold.innerHTML = '';
+    dealersVisibleCards.innerHTML = '';
+    dealersHitCards.innerHTML = '';
+    playerValue.innerHTML = '';
+    dealerValue.innerHTML = '';
     if(initialGame){
-		createDeck();
+        for(i=0; i<numberOfDecks; i++){
+            createdeck();
+        }
 		shuffleDeck(deck);
+        console.log('deck has been shuffled')
 		cardCount = 0;
 		initialGame = false;
 	}
     
+    let pCardFirst = [];
+    let dCardFirst = [];
+    let pCardSecond = [];
+    let dCardSecond = [];
     for(i=0; i<2; i++){
         playersDealtHand.push(deck[cardCount]);
-        playersHold.innerHTML += `<img src=PNG-cards/${deck[cardCount].number}_of_${deck[cardCount].suites}.png>`;
+        if (i == 0){
+            pCardFirstImg = `<img src=PNG-cards/${deck[cardCount].number}_of_${deck[cardCount].suites}.png>`;
+            pCardFirstValue = deck[cardCount].value;
+            pCardFirst.push(pCardFirstImg,pCardFirstValue);
+        } else {
+            pCardSecondImg = `<img src=PNG-cards/${deck[cardCount].number}_of_${deck[cardCount].suites}.png>`;
+            pCardSecondValue = deck[cardCount].value;
+            pCardSecond.push(pCardSecondImg,pCardSecondValue);
+        }
         // playerCounter = parseInt(playerCounter) + parseInt(`${deck[cardCount].value}`);
+        casinoCount();
         cardCount++;
+        
+
         dealersDealtHand.push(deck[cardCount]);
         if (i == 0){
-            dealersHold.innerHTML += `<img src=PNG-cards/pokemoncard.png>`;
+            dCardFirst.push('<img src=PNG-cards/pokemoncard.png>',0);
             dealerHidden = cardCount;
         } else{
-            dealersHold.innerHTML += `<img src=PNG-cards/${deck[cardCount].number}_of_${deck[cardCount].suites}.png>`;
+            dCardSecondImg = `<img src=PNG-cards/${deck[cardCount].number}_of_${deck[cardCount].suites}.png>`;
+            dCardSecondValue = deck[cardCount].value;
+            dCardSecond.push(dCardSecondImg,dCardSecondValue);
             dealersUpValue = parseInt(dealersUpValue)+parseInt(`${deck[cardCount].value}`);
             dealerUp = cardCount;
         }
+        casinoCount();
         cardCount++;
     }
-    let playerCounter = aceCheck(playersDealtHand);
-    dealerCounter = aceCheck(dealersDealtHand);
-    if ((playerCounter == 21 && playersDealtHand.length == 2) || (dealerCounter == 21 && dealersDealtHand.length == 2)){
+    delayTimer = .25;
+    setTimeout(() => {playersHold.innerHTML = pCardFirst[0]; playerValue.innerHTML = pCardFirst[1]}, delayTimer*1000);
+    setTimeout(() => {dealersVisibleCards.innerHTML = dCardFirst[0]}, delayTimer*1000*2);
+    setTimeout(() => {playersHold.innerHTML += pCardSecond[0]; playerValue.innerHTML = parseInt(pCardSecond[1]+pCardFirst[1])}, delayTimer*1000*3);
+    setTimeout(() => {dealersVisibleCards.innerHTML += dCardSecond[0]}, delayTimer*1000*4);
+    setTimeout(() => {let playerCounter = aceCheck(playersDealtHand); dealerCounter = aceCheck(dealersDealtHand);if ((playerCounter == 21 && playersDealtHand.length == 2) || (dealerCounter == 21 && dealersDealtHand.length == 2)){
         dealerCounter = dealerCounter;
         gameOver();
     } else {
@@ -87,20 +125,22 @@ function shuffleDeck(array) {    //shuffling the deck, order of cards get re-arr
 		} else {
 			dealerValue.innerHTML = dealersUpValue;
 		}
-	}
+	}}, delayTimer*1000*5);
+    
     cardCounter();
     playersHand = playersDealtHand;
     dealersHand = dealersDealtHand;
+    //console.log(playersHand);
 }
 
 function cardCounter(){
-    if (cardCount > 29){
+    if (cardCount > 29*numberOfDecks){
         initialGame = true;
     }
+    // console.log(cardCount)
 }
 
 function startGame(){
-    // shuffleDeck(deck);
     dealCards();
 };
 
@@ -118,7 +158,7 @@ function aceCheck(whosCard){
 
     if (hasAce && checkValue > 21){
         checkValue = checkValue - 10;
-        }
+    }
        return checkValue; 
 }
 
@@ -126,36 +166,87 @@ function gameOver(){
     dealerCount = aceCheck(dealersHand);
     playerCount = aceCheck(playersHand);
     gameStatus = 0;
-    dealersHold.innerHTML = `<img src=PNG-cards/${deck[dealerHidden].number}_of_${deck[dealerHidden].suites}.png><img src=PNG-cards/${deck[dealerUp].number}_of_${deck[dealerUp].suites}.png>`;
-    dealerValue.innerHTML = dealerCount;
+    dealersVisibleCards.innerHTML = `<img src=PNG-cards/${deck[dealerHidden].number}_of_${deck[dealerHidden].suites}.png><img src=PNG-cards/${deck[dealerUp].number}_of_${deck[dealerUp].suites}.png>`;
     playerValue.innerHTML = playerCount;
 
-    if(playerCount > 22){
-        console.log('LOSER! Player Bust');
-    } else if(dealerCount > 22 && playerCount < 22){
-        console.log('WINNER! Dealer Bust');
+    if(playerCount > 21){
+        gameResults.innerHTML = 'You Lose<br />Player BUST';
+        setTimeout(() => {overLay.style.display = 'unset';}, delayTimer*1000*2);
+    } else if(playerCount <= 21 && dealerCount < 17){
+        if(playerCount == 21 && playersHand.length == 2 && dealerCount != 21){
+            gameResults.innerHTML = 'You Win!<br />Player BlackJack';
+            setTimeout(() => {overLay.style.display = 'unset';}, delayTimer*1000*2);
+        } else {
+            console.log('Dealer, take a hit');
+            function dealerHit(){
+                dealersHand.push(deck[cardCount]);
+                dealersHitCards.innerHTML += `<img src=PNG-cards/${deck[cardCount].number}_of_${deck[cardCount].suites}.png>`;
+                dealerValue.innerHTML = aceCheck(dealersHand);
+                casinoCount();
+                cardCount ++;
+                gameOver();
+            }
+            setTimeout(() => {dealerHit()}, delayTimer*1000*2);
+        }
+    } else if(dealerCount > 21 && playerCount < 22){
+        gameResults.innerHTML = 'You Win!<br />Dealer BUST';
+        setTimeout(() => {overLay.style.display = 'unset';}, delayTimer*1000*2);
     } else if(dealerCount == 21 && dealersHand.length == 2 && playerCount != 21){
-        console.log('LOSER! Dealer has BlackJack');
+        gameResults.innerHTML = 'You Lose!<br />Dealer BlackJack';
+        setTimeout(() => {overLay.style.display = 'unset';}, delayTimer*1000*2);
     } else if(playerCount == 21 && playersHand.length == 2 && dealerCount != 21){
-        console.log('WINNER! Player has BlackJack');
+        gameResults.innerHTML = 'You Win!<br />Player BlackJack';
+        setTimeout(() => {overLay.style.display = 'unset';}, delayTimer*1000*2);
     } else if(playerCount == dealerCount){
-        console.log('PUSH');
+        gameResults.innerHTML = 'Game Over<br />Player Dealer PUSH';
+        setTimeout(() => {overLay.style.display = 'unset';}, delayTimer*1000*2);
+    } else if(playerCount <= 21 && dealerCount >= 17 && dealerCount < 22){
+        if(playerCount > dealerCount){
+            gameResults.innerHTML = 'You Win!<br />Player has higher cards';
+            setTimeout(() => {overLay.style.display = 'unset';}, delayTimer*1000*2);
+        } else {
+            gameResults.innerHTML = 'You Lose!<br />Dealer has higher cards';
+            setTimeout(() => {overLay.style.display = 'unset';}, delayTimer*1000*2);
+        }
+    } 
+    dealerValue.innerHTML = dealerCount;
+    hitButton.style.display = "none";
+    stayButton.style.display = "none";
+}
+startButton.addEventListener('click',startGame);
+function hit(){
+    if(gameStatus == 1){
+        playersHand.push(deck[cardCount]);
+        playersHold.innerHTML += `<img src=PNG-cards/${deck[cardCount].number}_of_${deck[cardCount].suites}.png>`;
+        playerValue.innerHTML = aceCheck(playersHand);
+        if(aceCheck(playersHand) >= 21){
+            gameOver();
+        }
+        casinoCount();
+        cardCount++;
+        cardCounter();
+        playersHand = playersHand;
+    }
+}
+function stay(){
+    if(gameStatus == 1){
+        gameOver();
     }
 }
 
-startButton.addEventListener('click',startGame)
+function between(x, min, max) {
+    return x >= min && x <= max;
+  }
 
-function hit(){
-    playersHand.push(deck[cardCount]);
-    playersHold.innerHTML += `<img src=PNG-cards/${deck[cardCount].number}_of_${deck[cardCount].suites}.png>`;
-    playerValue.innerHTML = aceCheck(playersHand);
-    if(aceCheck(playersHand) >= 21){
-        gameOver(aceCheck(dealersHand),dealersHand, aceCheck(playersHand), playersHand)
-    };
-    cardCount++;
-    cardCounter();
-    console.log(playersHand)
+function casinoCount(){
+    if(between(deck[cardCount].value, 2,6)){
+        casinoCounter = casinoCounter +1;
+    } else if(between(deck[cardCount].value, 7,9)){
+        casinoCounter = casinoCounter;
+    }  else {
+        casinoCounter = casinoCounter - 1;
+    }
+    console.log(casinoCounter)
 }
-
-hitButton.addEventListener('click',hit)
-stayButton.addEventListener('click',gameOver)
+hitButton.addEventListener('click',hit);
+stayButton.addEventListener('click',stay);
